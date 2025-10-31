@@ -150,6 +150,11 @@
                 "category": "Azure Functions"
             },
             {
+                "command": "azureFunctions.createProjectFromFunctionApp",
+                "title": "%azureFunctions.createProjectFromFunctionApp%",
+                "category": "Azure Functions"
+            },
+            {
                 "command": "azureFunctions.configureDeploymentSource",
                 "title": "%azureFunctions.configureDeploymentSource%",
                 "category": "Azure Functions"
@@ -209,6 +214,18 @@
                 "command": "azureFunctions.createNewProjectWithDockerfile",
                 "title": "%azureFunctions.createNewProjectWithDockerfile%",
                 "category": "Azure Functions",
+                "enablement": "!virtualWorkspace"
+            },
+            {
+                "command": "azureFunctions.testExternalRuntime",
+                "title": "Test External Runtime Configuration",
+                "category": "Azure Functions (Test)",
+                "enablement": "!virtualWorkspace"
+            },
+            {
+                "command": "azureFunctions.testTypeScriptExternalRuntime",
+                "title": "Test TypeScript External Runtime",
+                "category": "Azure Functions (Test)",
                 "enablement": "!virtualWorkspace"
             },
             {

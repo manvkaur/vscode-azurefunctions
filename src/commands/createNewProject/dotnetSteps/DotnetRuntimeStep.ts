@@ -21,8 +21,26 @@ export class DotnetRuntimeStep extends AzureWizardPromptStep<IProjectWizardConte
             const filteredRuntimes = runtimes.filter(runtime => context.targetFramework?.includes(runtime.targetFramework));
             let workerRuntime: cliFeedUtils.IWorkerRuntime | undefined = undefined;
             if (filteredRuntimes.length > 1) {
-                const placeHolder: string = localize('selectWorkerRuntime', 'Select a .NET runtime');
-                workerRuntime = (await context.ui.showQuickPick(new DotnetRuntimeStep().getPicks(context, filteredRuntimes), { placeHolder })).data;
+                if (context.externalRuntimeConfig) {
+                    // Separate filtered runtimes by isolated and non-isolated
+                    const isolatedRuntimes = filteredRuntimes.filter(r => r.capabilities.includes('isolated'));
+                    const inProcessRuntimes = filteredRuntimes.filter(r => !r.capabilities.includes('isolated'));
+
+
+                    // Pick runtime based on the expected linuxFxVersion
+                    const isIsolatedRequest = context.externalRuntimeConfig.runtimeName.toLowerCase().includes('isolated');
+                    if (isIsolatedRequest && isolatedRuntimes.length > 0) {
+                        workerRuntime = isolatedRuntimes[0];
+                    } else if (!isIsolatedRequest && inProcessRuntimes.length > 0) {
+                        workerRuntime = inProcessRuntimes[0];
+                    } else {
+                        // Fallback: prefer isolated if available, otherwise use first available
+                        workerRuntime = isolatedRuntimes[0] || inProcessRuntimes[0] || filteredRuntimes[0];
+                    }
+                } else {
+                    const placeHolder: string = localize('selectWorkerRuntime', 'Select a .NET runtime');
+                    workerRuntime = (await context.ui.showQuickPick(new DotnetRuntimeStep().getPicks(context, filteredRuntimes), { placeHolder })).data;
+                }
             } else if (filteredRuntimes.length === 1) {
                 workerRuntime = filteredRuntimes[0];
             }
@@ -39,6 +57,26 @@ export class DotnetRuntimeStep extends AzureWizardPromptStep<IProjectWizardConte
     }
 
     public async prompt(context: IProjectWizardContext): Promise<void> {
+        if (context.externalRuntimeConfig) {
+            // Auto-select runtime based on external config using linuxFxVersion format
+            const runtimes = await getRuntimes(context);
+            const runtimeName = context.externalRuntimeConfig.runtimeName.toLowerCase();
+            const runtimeVersion = context.externalRuntimeConfig.runtimeVersion;
+
+            // Construct the expected linuxFxVersion string
+            const expectedLinuxFxVersion = `${runtimeName}|${runtimeVersion}`.toLowerCase();
+
+            // Find runtime that matches the expected linuxFxVersion pattern
+            const isIsolatedRequest = expectedLinuxFxVersion.includes('isolated');
+            const result = runtimes.find(r => {
+                const runtimeIsIsolated = r.displayInfo.displayName.toLowerCase().includes('isolated');
+                return runtimeIsIsolated === isIsolatedRequest;
+            }) || runtimes[0];
+
+            setWorkerRuntime(context, result);
+            return;
+        }
+
         const placeHolder: string = localize('selectWorkerRuntime', 'Select a .NET runtime');
         let result: cliFeedUtils.IWorkerRuntime | undefined;
         while (true) {
@@ -54,7 +92,8 @@ export class DotnetRuntimeStep extends AzureWizardPromptStep<IProjectWizardConte
     }
 
     public shouldPrompt(context: IProjectWizardContext): boolean {
-        return !context.workerRuntime;
+        // Skip prompting if external runtime configuration is provided or worker runtime already set
+        return !context.workerRuntime && !context.externalRuntimeConfig;
     }
 
     private async getPicks(context: IProjectWizardContext, runtimes?: cliFeedUtils.IWorkerRuntime[]): Promise<IAzureQuickPickItem<cliFeedUtils.IWorkerRuntime | undefined>[]> {

@@ -8,6 +8,7 @@ import { type QuickPickOptions } from 'vscode';
 import { ProjectLanguage, nodeDefaultModelVersion, nodeLearnMoreLink, nodeModels, pythonDefaultModelVersion, pythonLearnMoreLink, pythonModels } from '../../constants';
 import { localize } from '../../localize';
 import { TemplateSchemaVersion } from '../../templates/TemplateProviderBase';
+import { getRuntimeMapping } from '../../utils/externalRuntimeUtils';
 import { nonNullProp } from '../../utils/nonNull';
 import { openUrl } from '../../utils/openUrl';
 import { FunctionListStep } from '../createFunction/FunctionListStep';
@@ -38,6 +39,19 @@ export class NewProjectLanguageStep extends AzureWizardPromptStep<IProjectWizard
     }
 
     public async prompt(context: IProjectWizardContext): Promise<void> {
+        if (context.externalRuntimeConfig) {
+            // Auto-set language based on external runtime config
+            const mapping = getRuntimeMapping(context.externalRuntimeConfig.runtimeName, context.externalRuntimeConfig.runtimeVersion);
+            if (mapping) {
+                context.language = mapping.language as ProjectLanguage;
+                context.languageModel = mapping.languageModel;
+                if (mapping.targetFramework) {
+                    context.targetFramework = [mapping.targetFramework];
+                }
+                return;
+            }
+        }
+
         // Only display 'supported' languages that can be debugged in VS Code
         let languagePicks: IAzureQuickPickItem<{ language: ProjectLanguage, model?: number } | undefined>[] = [
             { label: ProjectLanguage.JavaScript, data: { language: ProjectLanguage.JavaScript } },

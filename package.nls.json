@@ -13,6 +13,7 @@
     "azureFunctions.assignManagedIdentity": "Assign Managed Identity to Function App...",
     "azureFunctions.unassignManagedIdentity": "Unassign Managed Identity from Function App...",
     "azureFunctions.browseWebsite": "Browse Website",
+    "azureFunctions.createProjectFromFunctionApp": "Create Project from Function App...",
     "azureFunctions.configureDeploymentSource": "Configure Deployment Source...",
     "azureFunctions.connectToGitHub": "Connect to GitHub Repository...",
     "azureFunctions.copyFunctionUrl": "Copy Function Url",

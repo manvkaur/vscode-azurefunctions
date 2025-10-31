@@ -54,6 +54,7 @@ export class JavaVersionStep extends AzureWizardPromptStep<IJavaProjectWizardCon
     }
 
     public shouldPrompt(context: IJavaProjectWizardContext): boolean {
-        return !context.javaVersion;
+        // Skip prompting if external runtime configuration is provided
+        return !context.javaVersion && !context.externalRuntimeConfig;
     }
 }

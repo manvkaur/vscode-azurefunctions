@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { type RuntimeName } from "@azure/arm-appservice";
 import { type IAzureQuickPickItem } from "@microsoft/vscode-azext-utils";
 import { localize } from "./localize";
 
@@ -219,3 +220,59 @@ export const EventHubsNamespaceResourceType: string = 'namespaces';
 
 export const DurableTaskProvider: string = 'Microsoft.DurableTask';
 export const DurableTaskSchedulersResourceType: string = 'schedulers';
+
+/**
+ * External runtime configuration types for programmatic project initialization
+ */
+export interface IExternalRuntimeConfig {
+    readonly runtimeName: string;
+    readonly runtimeVersion: string;
+    readonly projectPath?: string;
+}
+
+export interface IRuntimeVersionMapping {
+    language: string; // Using string to match API ProjectLanguage
+    version: string;
+    languageModel?: number;
+    targetFramework?: string;
+    javaVersion?: string;
+    pythonAlias?: string;
+}
+
+/**
+ * Maps external runtime versions to internal configuration
+ */
+export const RuntimeVersionMappings: Record<RuntimeName, IRuntimeVersionMapping[]> = {
+    'node': [
+        { language: 'TypeScript', version: '18', languageModel: nodeDefaultModelVersion },
+        { language: 'TypeScript', version: '20', languageModel: nodeDefaultModelVersion },
+        { language: 'TypeScript', version: '14', languageModel: undefined }, // v3 model
+    ],
+    'python': [
+        { language: 'Python', version: '3.8', languageModel: pythonDefaultModelVersion },
+        { language: 'Python', version: '3.9', languageModel: pythonDefaultModelVersion },
+        { language: 'Python', version: '3.10', languageModel: pythonDefaultModelVersion },
+        { language: 'Python', version: '3.11', languageModel: pythonDefaultModelVersion },
+        { language: 'Python', version: '3.12', languageModel: pythonDefaultModelVersion },
+    ],
+    'dotnet': [
+        { language: 'C#', version: '6.0', targetFramework: 'net6.0' },
+        { language: 'C#', version: '8.0', targetFramework: 'net8.0' },
+    ],
+    'dotnet-isolated': [
+        { language: 'C#', version: '6.0', targetFramework: 'net6.0' },
+        { language: 'C#', version: '8.0', targetFramework: 'net8.0' },
+        { language: 'C#', version: '9.0', targetFramework: 'net9.0' },
+    ],
+    'java': [
+        { language: 'Java', version: '8', javaVersion: '8' },
+        { language: 'Java', version: '11', javaVersion: '11' },
+        { language: 'Java', version: '17', javaVersion: '17' },
+        { language: 'Java', version: '21', javaVersion: '21' },
+    ],
+    'powershell': [
+        { language: 'PowerShell', version: '7.0' },
+        { language: 'PowerShell', version: '7.2' },
+        { language: 'PowerShell', version: '7.4' },
+    ]
+};
